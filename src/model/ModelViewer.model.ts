@@ -1,4 +1,4 @@
-import { IData } from "src/interfaces/interfaces";
+import { IData } from "../interfaces/interfaces";
 import * as d3 from 'd3';
 import { ChartUtils } from "../utils/chart.utils";
 import { METAWIDTH, ROWHEIGHT, TEXTWIDTH } from "../constants/chart-constants";
