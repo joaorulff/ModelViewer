@@ -1,1 +1,1 @@
-export { TemporalViewer } from './TemporalViewer'; 
+ export { ModelViewer } from './chart/ModelViewer.model'

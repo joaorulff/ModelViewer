@@ -2,6 +2,20 @@ import * as d3 from 'd3';
 
 export class ChartUtils {
 
+    public static create_div( container: HTMLElement, zindex: number = 1 ): d3.Selection<any,any,any,any> {
+
+        // container dimensions
+        const width: number = container.clientWidth;
+        const height: number = container.clientHeight;
+
+        // creating svg
+        return d3.select(container)
+            .append('div')
+            .attr('width', width)
+            .attr('height', height)
+            .style('z-index', zindex);
+    }
+
     public static create_svg( container: HTMLElement, zindex: number = 1 ): d3.Selection<any,any,any,any> {
 
         // container dimensions
