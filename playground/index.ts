@@ -31,8 +31,6 @@ const main = async () => {
 
     mv.update( data, null, [0, 180000] );
 
-    
-
 }
 
 main();
