@@ -70,7 +70,7 @@ export class MatrixSection {
 
     }
 
-    public update( data: IData, selectedIndex: number | null, timeExtent: number[] = [] ): void {
+    public update( data: IData, selectedIndex: number | null, timeExtent: number[] = [], callbacks: { [callbackName: string]: any } ): void {
 
         // updating scales
         this.update_scales( data );
@@ -94,26 +94,41 @@ export class MatrixSection {
         // appending cells
         const cells = rowGroups
                 .selectAll('.cell')
-                .data(  ( data: { name: string, values: number[] } ) => data.values )
+                .data(  ( data: { name: string, values: number[] } ) => data.values.map( (value: number, index: number) => { return { value, index } } ) )
                 .join( 
                     (enter: any) => enter.append('rect')
                             .attr('class', 'cell')
-                            .attr('x', ( value: number, index: number ) => this.horizontalScale(index) )
+                            .attr('x', ( value: {value: number, index: number}, index: number ) => this.horizontalScale(index) )
                             .attr('y', 0 )
-                            .attr('fill', ( value: number, index: number ) => this.colorScale(value) )
+                            .attr('fill', ( value: {value: number, index: number}, index: number ) => this.colorScale(value.value) )
                             .attr('width', this.horizontalScale(1) - this.horizontalScale(0) )
                             .attr('height', this.verticalScale.bandwidth() )
-                            .attr('opacity', ( value: number, index: number ) => this.pick_opacity(index, selectedIndex) ),
+                            .attr('opacity', ( value: {value: number, index: number}, index: number ) => this.pick_opacity(index, selectedIndex) )
+                            .style('cursor', 'pointer')
+                            .on( 'mouseover', ( event: MouseEvent, value: {value: number, index: number}, index: number, a: any ) => { 
+                                this.fire_callback( 'mouseover', callbacks, value.index );
+                            })
+                            .on( 'mouseout', ( event: MouseEvent, value: {value: number, index: number}, index: number, a: any ) => { 
+                                this.fire_callback( 'mouseout', callbacks, null );
+                            }),
                     (update: any) => update
-                            .attr('fill', ( value: number, index: number ) => this.colorScale(value) )
-                            .attr('x', ( value: number, index: number ) => this.horizontalScale(index) )
+                            .attr('fill', ( value: {value: number, index: number}, index: number ) => this.colorScale(value.value) )
+                            .attr('x', ( value: {value: number, index: number}, index: number ) => this.horizontalScale(index) )
                             .attr('width', this.horizontalScale(1) - this.horizontalScale(0) )
                             .transition(100)
-                            .attr('opacity', ( value: number, index: number ) => this.pick_opacity(index, selectedIndex) ),
+                            .attr('opacity', ( value: {value: number, index: number}, index: number ) => this.pick_opacity(index, selectedIndex) ),
                     (exit: any) => exit.remove()
                 )
     }
 
+
+    private fire_callback( callbackName: string, callbacks: { [callbackName: string]: any }, index: number | null ): void {
+
+        if( callbackName in callbacks ){
+            callbacks[callbackName](index);
+        }
+
+    }
 
     private pick_opacity( cellIndex: number, selectedIndex: number | null ): number {
 

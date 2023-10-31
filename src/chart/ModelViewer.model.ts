@@ -19,7 +19,7 @@ export class ModelViewer {
     public matrixSection!: MatrixSection;
     public summarySection!: SummarySection;
     
-    constructor( public container: HTMLDivElement ) {
+    constructor( public container: HTMLDivElement, public callbacks: { [callbackName: string]: any } = {} ) {
 
         if( !this.svg ) this.initialize_chart();
     }
@@ -45,7 +45,7 @@ export class ModelViewer {
 
         // updating sections
         this.labelSection.update( data, index );
-        this.matrixSection.update( data, index, timeExtent );
+        this.matrixSection.update( data, index, timeExtent, this.callbacks );
         this.summarySection.update( data );
 
     }
