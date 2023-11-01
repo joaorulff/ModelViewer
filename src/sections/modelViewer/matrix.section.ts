@@ -1,11 +1,11 @@
 // constaints
-import { LABELSECTIONWIDTHRATIO, MATRIXSECTIONMARGINS, MATRIXSECTIONWIDTHRATIO } from "../constants/chart-constants";
+import { LABELSECTIONWIDTHRATIO, MATRIXSECTIONMARGINS, MATRIXSECTIONWIDTHRATIO } from "../../constants/chart-constants";
 
 // interfaces
-import { IData } from "../interfaces/interfaces";
+import { IData } from "../../interfaces/interfaces";
 
 // utils
-import { ChartUtils } from "../utils/chart.utils";
+import { ChartUtils } from "../../utils/chart.utils";
 
 // external
 import * as d3 from 'd3';
@@ -86,21 +86,34 @@ export class MatrixSection {
                 (enter: any) => enter
                     .append('g')
                     .attr('class', 'row-group')
-                    .attr('transform', ( row: { name: string, values: number[] }, index: number ) => 'translate(' + 0 + ',' + this.verticalScale( row.name ) + ')' ),
-                (update: any) => update.attr('transform', ( row: { name: string, values: number[] }, index: number ) => 'translate(' + 0 + ',' + this.verticalScale( row.name ) + ')' ),
+                    .attr('transform', ( row: { name: string, values: number[], colors?: string[] }, index: number ) => 'translate(' + 0 + ',' + this.verticalScale( row.name ) + ')' ),
+                (update: any) => update.attr('transform', ( row: { name: string, values: number[], colors?: string[] }, index: number ) => 'translate(' + 0 + ',' + this.verticalScale( row.name ) + ')' ),
                 (exit: any) => exit.remove()
             )
 
         // appending cells
         const cells = rowGroups
                 .selectAll('.cell')
-                .data(  ( data: { name: string, values: number[] } ) => data.values.map( (value: number, index: number) => { return { value, index } } ) )
+                .data(  ( data: { name: string, values: number[], colors?: string[] } ) => data.values.map( (value: number, index: number) => { 
+                    
+                    if( data.colors ){
+                        return { value, index, color: data.colors[index] }
+                    }
+                    return { value, index } 
+                
+                }))
                 .join( 
                     (enter: any) => enter.append('rect')
                             .attr('class', 'cell')
-                            .attr('x', ( value: {value: number, index: number}, index: number ) => this.horizontalScale(index) )
+                            .attr('x', ( value: {value: number, index: number, color?: string}, index: number ) => this.horizontalScale(index) )
                             .attr('y', 0 )
-                            .attr('fill', ( value: {value: number, index: number}, index: number ) => this.colorScale(value.value) )
+                            .attr('fill', ( value: {value: number, index: number, color?: string}, index: number ) => {
+                                
+                                if( value.color ){
+                                    return value.color;
+                                }
+                                return this.colorScale(value.value)
+                            })
                             .attr('width', this.horizontalScale(1) - this.horizontalScale(0) )
                             .attr('height', this.verticalScale.bandwidth() )
                             .attr('opacity', ( value: {value: number, index: number}, index: number ) => this.pick_opacity(index, selectedIndex) )
@@ -112,7 +125,12 @@ export class MatrixSection {
                                 this.fire_callback( 'mouseout', callbacks, null );
                             }),
                     (update: any) => update
-                            .attr('fill', ( value: {value: number, index: number}, index: number ) => this.colorScale(value.value) )
+                            .attr('fill', ( value: {value: number, index: number, color?: string}, index: number ) => {
+                                if( value.color ){
+                                    return value.color;
+                                }
+                                return this.colorScale(value.value)    
+                            })
                             .attr('x', ( value: {value: number, index: number}, index: number ) => this.horizontalScale(index) )
                             .attr('width', this.horizontalScale(1) - this.horizontalScale(0) )
                             .transition(100)

@@ -1,11 +1,11 @@
 // interfaces
-import { IData } from "../interfaces/interfaces";
+import { IData } from "../../interfaces/interfaces";
 
 // constants
-import { LABELSECTIONMARGINS, LABELSECTIONWIDTHRATIO } from "../constants/chart-constants";
+import { LABELSECTIONMARGINS, LABELSECTIONWIDTHRATIO } from "../../constants/chart-constants";
 
 // utils
-import { ChartUtils } from "../utils/chart.utils";
+import { ChartUtils } from "../../utils/chart.utils";
 
 // external
 import * as d3 from 'd3';

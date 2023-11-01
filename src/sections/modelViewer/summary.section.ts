@@ -1,11 +1,11 @@
 // utils
-import { ChartUtils } from "../utils/chart.utils";
+import { ChartUtils } from "../../utils/chart.utils";
 
 // constants
-import { LABELSECTIONWIDTHRATIO, MATRIXSECTIONWIDTHRATIO, SUMMARYSECTIONMARGINS, SUMMARYSECTIONWIDTHRATIO } from "../constants/chart-constants";
+import { LABELSECTIONWIDTHRATIO, MATRIXSECTIONWIDTHRATIO, SUMMARYSECTIONMARGINS, SUMMARYSECTIONWIDTHRATIO } from "../../constants/chart-constants";
 
 // interfaces
-import { IData } from "../interfaces/interfaces";
+import { IData } from "../../interfaces/interfaces";
 
 // external
 import * as d3 from 'd3';

@@ -24,3 +24,12 @@ export const SUMMARYSECTIONMARGINS: {top: number, left: number, bottom: number, 
     right: 5,
     bottom: 30
 }
+
+
+// TEMPORAL MODEL VIEWER
+export const TEMPORALMATRIXSECTIONMARGINS: {top: number, left: number, bottom: number, right: number} = {
+    top: 5,
+    left: 50,
+    right: 5,
+    bottom: 30
+}

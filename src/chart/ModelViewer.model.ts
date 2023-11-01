@@ -1,7 +1,7 @@
 // sections
-import { MatrixSection } from '../sections/matrix.section';
-import { LabelSection } from '../sections/label.section';
-import { SummarySection } from '../sections/summary.section';
+import { MatrixSection } from '../sections/modelViewer/matrix.section';
+import { LabelSection } from '../sections/modelViewer/label.section';
+import { SummarySection } from '../sections/modelViewer/summary.section';
 
 // utils
 import { ChartUtils } from "../utils/chart.utils";
@@ -46,7 +46,7 @@ export class ModelViewer {
         // updating sections
         this.labelSection.update( data, index );
         this.matrixSection.update( data, index, timeExtent, this.callbacks );
-        this.summarySection.update( data );
+        // this.summarySection.update( data );
 
     }
 
