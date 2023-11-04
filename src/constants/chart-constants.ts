@@ -28,8 +28,17 @@ export const SUMMARYSECTIONMARGINS: {top: number, left: number, bottom: number, 
 
 // TEMPORAL MODEL VIEWER
 export const TEMPORALMATRIXSECTIONMARGINS: {top: number, left: number, bottom: number, right: number} = {
-    top: 5,
+    top: 10,
     left: 50,
-    right: 5,
+    right: 10,
+    bottom: 30
+}
+
+
+// CONTINUOUS MODEL VIEWER
+export const CONTINUOUSMAINSECTIONMARGINS: {top: number, left: number, bottom: number, right: number} = {
+    top: 10,
+    left: 80,
+    right: 10,
     bottom: 30
 }

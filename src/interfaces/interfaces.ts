@@ -11,9 +11,10 @@ export interface IData {
 
 }
 
-
 export interface ITemporalData {
-
     labels: { [label: string | number]: { value: string | number, timestamp: number}[] }
+}
 
+export interface IContinuosModelData {
+    ids: { [id: string ]: { step: number, timestamp: number, error: boolean }[] }
 }
