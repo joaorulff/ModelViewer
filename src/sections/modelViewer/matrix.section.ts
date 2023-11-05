@@ -45,10 +45,18 @@ export class MatrixSection {
 
         const labels: string[] = data.labels.map( 
             ( label: { name: string, values: number[], confidence: number, coverage: number } ) => label.name );
+
+        let timestampsExtent: number[] | [undefined, undefined] = data.labels.map(
+            ( label: { name: string, values: number[], timestamps: number[], confidence: number, coverage: number } ) => label.timestamps
+        ).flat();
+        timestampsExtent = d3.extent( timestampsExtent );
         
         this.verticalScale = d3.scaleBand().domain( labels ).range( [0, this.height] ).paddingInner(0.1);
-        this.horizontalScale = d3.scaleLinear().domain( [0, data.labels[0].values.length] ).range( [0, this.width] );
+        this.horizontalScale = d3.scaleLinear().domain( <number[]>timestampsExtent ).range( [0, this.width] );
         this.colorScale = d3.scaleSequential( d3.interpolateBlues ).domain([0,1]);
+
+        console.log(labels);
+        console.log(this.verticalScale('tortilla_package'));
 
     }
 
@@ -70,13 +78,15 @@ export class MatrixSection {
 
     }
 
-    public update( data: IData, selectedIndex: number | null, timeExtent: number[] = [], callbacks: { [callbackName: string]: any } ): void {
+    public update( data: IData, selectedTimestamp: number | null, callbacks: { [callbackName: string]: any } ): { [label: string]: number } {
+
+        const selection: { [label: string]: number } = {};
 
         // updating scales
         this.update_scales( data );
 
         // updating axis
-        this.update_axis( data, timeExtent );
+        // this.update_axis( data, timeExtent );s
 
         // appending row groups
         const rowGroups = this.group
@@ -93,72 +103,84 @@ export class MatrixSection {
 
         // appending cells
         const cells = rowGroups
-                .selectAll('.cell')
-                .data(  ( data: { name: string, values: number[], colors?: string[] } ) => data.values.map( (value: number, index: number) => { 
-                    
-                    if( data.colors ){
-                        return { value, index, color: data.colors[index] }
-                    }
-                    return { value, index } 
+            .selectAll('.cell')
+            .data(  ( data: { name: string, values: number[], timestamps: number[], colors?: string[] } ) => data.values.map( (value: number, index: number) => { 
                 
-                }))
-                .join( 
-                    (enter: any) => enter.append('rect')
-                            .attr('class', 'cell')
-                            .attr('x', ( value: {value: number, index: number, color?: string}, index: number ) => this.horizontalScale(index) )
-                            .attr('y', 0 )
-                            .attr('fill', ( value: {value: number, index: number, color?: string}, index: number ) => {
-                                
-                                if( value.color ){
-                                    return value.color;
-                                }
-                                return this.colorScale(value.value)
-                            })
-                            .attr('width', this.horizontalScale(1) - this.horizontalScale(0) )
-                            .attr('height', this.verticalScale.bandwidth() )
-                            .attr('opacity', ( value: {value: number, index: number}, index: number ) => this.pick_opacity(index, selectedIndex) )
-                            .style('cursor', 'pointer')
-                            .on( 'mouseover', ( event: MouseEvent, value: {value: number, index: number}, index: number, a: any ) => { 
-                                this.fire_callback( 'mouseover', callbacks, value.index );
-                            })
-                            .on( 'mouseout', ( event: MouseEvent, value: {value: number, index: number}, index: number, a: any ) => { 
-                                this.fire_callback( 'mouseout', callbacks, null );
-                            }),
-                    (update: any) => update
-                            .attr('fill', ( value: {value: number, index: number, color?: string}, index: number ) => {
-                                if( value.color ){
-                                    return value.color;
-                                }
-                                return this.colorScale(value.value)    
-                            })
-                            .attr('x', ( value: {value: number, index: number}, index: number ) => this.horizontalScale(index) )
-                            .attr('width', this.horizontalScale(1) - this.horizontalScale(0) )
-                            .transition(100)
-                            .attr('opacity', ( value: {value: number, index: number}, index: number ) => this.pick_opacity(index, selectedIndex) ),
-                    (exit: any) => exit.remove()
-                )
+                // This will send a dictionary of selected values to the next component
+                if( ! (data.name in selection) ){
+                    selection[data.name] = 0;
+                }
+
+                if( selectedTimestamp === data.timestamps[index]){
+                    selection[ data.name ] = value;
+                }
+
+                if( data.colors ){
+                    return { value, index, color: data.colors[index], timestamp: data.timestamps[index] }
+                }
+                return { value, index, timestamp: data.timestamps[index] } 
+            
+            }))
+            .join( 
+                (enter: any) => enter.append('rect')
+                    .attr('class', 'cell')
+                    .attr('x', ( value: {value: number, timestamp: number, index: number, color?: string}, index: number ) => this.horizontalScale(value.timestamp) )
+                    .attr('y', 0 )
+                    .attr('fill', ( value: {value: number, timestamp: number, index: number, color?: string}, index: number ) => {
+                        
+                        if( value.color ){
+                            return value.color;
+                        }
+                        return this.colorScale(value.value)
+                    })
+                    .attr('width', 1)
+                    .attr('height', this.verticalScale.bandwidth() )
+                    .attr('opacity', ( value: {value: number, timestamp: number, index: number}, index: number ) => this.pick_opacity(value.timestamp, selectedTimestamp) )
+                    .style('cursor', 'pointer')
+                    .on( 'mouseover', ( event: MouseEvent, value: {value: number, timestamp: number, index: number}, index: number ) => { 
+                        this.fire_callback( 'mouseover', callbacks, value.timestamp );
+                    })
+                    .on( 'mouseout', ( event: MouseEvent, value: {value: number, timestamp: number, index: number}, index: number, a: any ) => { 
+                        this.fire_callback( 'mouseout', callbacks, null );
+                    }),
+                (update: any) => update
+                    .attr('fill', ( value: {value: number, timestamp: number, index: number, color?: string}, index: number ) => {
+
+
+                        if( value.color ){
+                            return value.color;
+                        }
+                        return this.colorScale(value.value)    
+                    })
+                    .attr('x', ( value: {value: number, timestamp: number, index: number}, index: number ) => this.horizontalScale(value.timestamp) )
+                    .attr('width', 1)
+                    .attr('opacity', ( value: {value: number, timestamp: number, index: number}, index: number ) => this.pick_opacity(value.timestamp, selectedTimestamp) ),
+                (exit: any) => exit.remove()
+            )
+
+            return selection;
     }
 
 
-    private fire_callback( callbackName: string, callbacks: { [callbackName: string]: any }, index: number | null ): void {
+    private fire_callback( callbackName: string, callbacks: { [callbackName: string]: any }, timestamp: number | null ): void {
 
         if( callbackName in callbacks ){
-            callbacks[callbackName](index);
+            callbacks[callbackName](timestamp);
         }
 
     }
 
-    private pick_opacity( cellIndex: number, selectedIndex: number | null ): number {
+    private pick_opacity( cellTimestamp: number, selectedTimestamp: number | null ): number {
 
-        if( selectedIndex === null || selectedIndex === undefined ){
+        if( cellTimestamp === null || selectedTimestamp === undefined ){
+            return 0.5;
+        }
+
+        if( selectedTimestamp === cellTimestamp ){
             return 1;
         }
 
-        if( selectedIndex === cellIndex ){
-            return 1;
-        }
-
-        return 0.2;
+        return 0.1;
 
     }
 

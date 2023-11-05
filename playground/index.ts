@@ -117,117 +117,77 @@ import { ContinuousModelViewer } from '../src/chart/ContinuousModelViewer.model'
 
 const main = async () => {
 
-    // let memory: any =  await fetch('./data/memory.json');
-    // memory = await memory.json();
+    let perception: any =  await fetch('./data/detic:image:for3d.json');
+    perception = await perception.json();
 
-    // // let detic: any = await fetch('./data/detic:image:misc:for3d.json');
-    // // detic = await detic.json();
+    const indexedLabels: { [label: string]: { values: number[], timestamps: number[] } } = {};
+    perception.forEach( (entry: any) => {
 
-    // // for( let i = 0; i < 20; i++ ){
-    // //     console.log(memory[i].timestamp, ' - ', detic[i].timestamp)
-    // // }
+        const currentTimestamp: number = parseInt(entry.timestamp.split('-')[0]);
 
+        const detectedObjects: { [label:string]: number } = {};
+        entry.objects.forEach( (object: any) => {
+            detectedObjects[object.label] = object.confidence;
+        });
 
-    // const timestamp: number [] = [+Infinity, -Infinity];
-    // memory.forEach( (entry: any) => {
-        
-    //     const ts: number = parseInt(entry.timestamp.split('-')[0])
-        
-    //     if(  ts < timestamp[0] ){
-    //         timestamp[0] =  ts
-    //     }
+        Object.keys( detectedObjects ).forEach( (key: string) => {
 
-    //     if( ts > timestamp[1] ){
-    //         timestamp[1] =  ts
-    //     }
+            if( !(key in indexedLabels) ){
+                indexedLabels[key] = { values: [], timestamps: [] };
+            }
+            indexedLabels[key].values.push( detectedObjects[key] );
+            indexedLabels[key].timestamps.push( currentTimestamp );
+        });
 
-    // })
+    })
 
-    // console.log(timestamp[1]- timestamp[0])
+    const parsedData: any[] = [];
+    const maxCount = Object.values(indexedLabels).reduce( (a, b) => {
+        if( a < b.timestamps.length ) return b.timestamps.length
+        return a;
+    }, 0)
+    Object.keys( indexedLabels ).forEach( (key: string) => {
+        parsedData.push(
+            { 
+                name: key, 
+                values: indexedLabels[key].values, 
+                timestamps: indexedLabels[key].timestamps, 
+                confidence: indexedLabels[key].values.reduce((a, b) => a + b) / indexedLabels[key].values.length, 
+                coverage: indexedLabels[key].timestamps.length/maxCount
+            }
+        )
+    });
+ 
+    console.log(parsedData);
 
-    // // getting single IDs
-    // const uniqueIDs = get_unique_ids( memory );
-    // const indexedIDs = uniqueIDs.reduce( (accum: any, current: any) => {
-    //     accum[current] = { values: [], colors: [] };
-    //     return accum;
-    // }, {});
-
-    // let accumulator = 0;
-    // memory.forEach( (entry: any) => {
-    //     entry.values.forEach( (object: any) => {
-
-    //         const key: string = `${object.label}-${object.id}`;
-
-    //         if( object.status === 'tracked'){
-    //             indexedIDs[key].colors.push('#377eb8');
-    //             indexedIDs[key].values.push(0.0);
-    //         }else if( object.status === 'outside'){
-    //             indexedIDs[key].colors.push('#e41a1c');
-    //             indexedIDs[key].values.push(0.0);
-    //         }else {
-    //             console.log('EXTENDED')
-    //             indexedIDs[key].colors.push('#4daf4a');
-    //             indexedIDs[key].values.push(0.0);
-    //         }                   
-    //     })
-    //     accumulator += 1;
-
-    //     Object.keys(indexedIDs).forEach( (id: any) => {
-    //         if( indexedIDs[id].colors.length < accumulator ){
-    //             indexedIDs[id].colors.push('white');
-    //             indexedIDs[id].values.push(0.0);
-    //         }
-    //     });
-
-    // });
-
-    // // formatting the data
-    // const labels: { name: string, values: number[], confidence: number, coverage: number, colors?: string[] }[] = [];
-    // Object.keys(indexedIDs).forEach( (id: any) => {
-    //     if( id.includes('tortilla_package') ){
-    //         labels.push({
-    //             name: `${id}`,
-    //             values: indexedIDs[id].values,
-    //             confidence: 0.5,
-    //             coverage: 0.5,
-    //             colors: indexedIDs[id].colors,
-    //         })
-    //     }
-    // });
-
-      // synthetic data
-      const data =  
-      { name: 'actions', 
-          labels: [
-              { name: 'tortilla', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random(), colors: Array.from({length: 1200}, () => ( 'red' )) },
-              { name: 'knife', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random()  },
-              { name: 'plate', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random() },
-            //   { name: 'paper towel', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random() },
-            //   { name: 'board', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random() },
-            //   { name: 'toothpicks', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random() },
-            //   { name: 'dental floss', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random() },
-            //   { name: 'jam', values: Array.from({length: 1200}, () => (Math.random())), confidence: Math.random(), coverage: Math.random() }
-      ]}
-
-
-    // // synthetic data
+    // synthetic data
     // const data =  
     // { name: 'actions', 
-    //     labels: labels
-    // }
+    //     labels: [
+    //         { name: 'tortilla', values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'knife'   , values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'plate'   , values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'paper towel', values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'board', values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'toothpicks', values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'dental floss', values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() },
+    //         { name: 'jam', values: Array.from({length: 200}, () => (Math.random())), timestamps: Array.from(Array(200).keys()), confidence: Math.random(), coverage: Math.random() }
+    // ]}
 
-    const mouseover = (index: number) => {
-        mv.update(  data, index, [0, 180000] )
+    const data = { name: 'actions', labels: parsedData }
+
+    const mouseover = (timestamp: number | null, index: number | null) => {
+        mv.update(  data, timestamp );
     }
 
-    const mouseout = (index: number) => {
-        mv.update(  data, index, [0, 180000] )
+    const mouseout = (timestamp: number| null, index: number| null) => {
+        mv.update(  data, timestamp );
     }
 
     const mainDiv: HTMLDivElement = <HTMLDivElement>document.getElementById('main-div');
     const mv = new ModelViewer( mainDiv, { 'mouseover': mouseover, 'mouseout': mouseout } );
 
-    mv.update( data, null, [0, 180000] );
+    mv.update( data, null );
 
 }
 

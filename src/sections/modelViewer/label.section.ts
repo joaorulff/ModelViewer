@@ -44,7 +44,7 @@ export class LabelSection {
         this.horizontalScale = d3.scaleLinear().domain( [0,1] ).range( [0, this.width] );
     }   
 
-    public update( data: IData, index: number | null ): void {
+    public update( data: IData, selection: { [label: string]: number } ): void {
 
         // updating scales
         this.update_scales( data );
@@ -67,9 +67,9 @@ export class LabelSection {
         // appending confidence bars
         const confidenceBars = nameGroups
             .selectAll('.confidence-bar')
-            .data( ( data: { name: string, values: number[] } ) =>  { 
-                if( index !== null ){
-                    return [data.values[index]];
+            .data( ( data: { name: string, values: number[], timestamps: number[] } ) =>  { 
+                if( selection[data.name] !== 0 ){
+                    return [selection[data.name]];
                 }
                 return [0]
             })
@@ -96,13 +96,17 @@ export class LabelSection {
             .data(  ( data: { name: string, values: number[] } ) =>  [data.name] )
             .join( 
                 (enter: any) => enter
-                            .append('text')  
-                            .attr('class', 'label-name')
-                            .attr('y', this.verticalScale.bandwidth() / 2 )
-                            .attr('alignment-baseline', 'middle')
-                            .text( ( label: string ) => label ),
+                    .append('text')  
+                    .attr('class', 'label-name')
+                    .attr('y', this.verticalScale.bandwidth() / 2 )
+                    .attr('alignment-baseline', 'middle')
+                    .attr('stroke-width', 0)
+                    .attr('font-family', 'Open Sans regular', 'Open Sans')
+                    .attr('font-size', `16px`)
+                    .attr('color', '#636363')
+                    .text( ( label: string ) => label ),
                 (update: any) => update
-                            .text( ( label: string ) => label ),
+                    .text( ( label: string ) => label ),
                 (exit: any) => exit.remove()
         )  
 

@@ -41,12 +41,12 @@ export class ModelViewer {
 
     }
 
-    public update( data: IData, index: number | null, timeExtent: number[] = [] ): void {
+    public update( data: IData, timestamp: number | null ): void {
 
         // updating sections
-        this.labelSection.update( data, index );
-        this.matrixSection.update( data, index, timeExtent, this.callbacks );
-        // this.summarySection.update( data );
+        const selection:{ [label: string]: number } = this.matrixSection.update( data, timestamp, this.callbacks );
+        this.labelSection.update( data, selection );
+        this.summarySection.update( data );
 
     }
 

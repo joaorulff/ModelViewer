@@ -5,6 +5,7 @@ export interface IData {
     labels: { 
         name: string, 
         values: number[], 
+        timestamps: number[],
         colors?: string[],
         confidence: number, 
         coverage: number }[],
